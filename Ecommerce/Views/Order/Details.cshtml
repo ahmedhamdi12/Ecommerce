@@ -1,0 +1,27 @@
+﻿@model Ecommerce.Models.Order
+
+<h1>Order #@Model.Id</h1>
+<p>Date: @Model.OrderDate</p>
+<p>Total: @Model.Total EGP</p>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>Product</th>
+            <th>Price</th>
+            <th>Qty</th>
+            <th>Subtotal</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model.OrderItems)
+        {
+            <tr>
+                <td>@item.Name</td>
+                <td>@item.Price</td>
+                <td>@item.Quantity</td>
+                <td>@(item.Price* item.Quantity)</td>
+            </tr>
+        }
+    </tbody>
+</table>

@@ -1,0 +1,44 @@
+﻿@model List<Ecommerce.Models.CartItem>
+
+@{
+    ViewData["Title"] = "Index";
+}
+@{
+    decimal total = Model.Sum(item => item.Price * item.Quantity);
+}
+
+<h2>Your Cart</h2>
+
+<table class="table">
+    <tr>
+        <th>Image</th>
+        <th>Name</th>
+        <th>Price</th>
+        <th>Quantity</th>
+        <th>Total</th>
+        <th></th>
+    </tr>
+
+    @foreach (var item in Model)
+    {
+        <tr>
+            <td><img src="~/images/@item.ImageUrl" width="80" /></td>
+            <td>@item.Name</td>
+            <td>@item.Price</td>
+            <td>@item.Quantity</td>
+            <td>@(item.Price* item.Quantity)</td>
+            <td>
+                <a asp-action="Increase" asp-route-id="@item.ProductId" class="btn btn-success">+</a>
+                <a asp-action="Decrease" asp-route-id="@item.ProductId" class="btn btn-warning">-</a>
+            </td>
+            
+            <td>
+                <a asp-action="Remove" asp-route-id="@item.ProductId" class="btn btn-danger">Remove</a>
+            </td>
+        </tr>
+        
+    }
+    <a asp-action="Clear" class="btn btn-danger p-6">Clear Cart</a>
+    <a asp-controller="Order" asp-action="Checkout" class="btn btn-primary p-6">Checkout</a>
+</table>
+<h3>Total : @total EGP</h3>
