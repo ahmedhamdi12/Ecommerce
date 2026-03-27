@@ -1,0 +1,14 @@
+﻿<div style="text-align:center; margin-top:50px;">
+    <h1 style="color:green;">✅ Payment Successful</h1>
+    <p>Your order has been processed successfully.</p>
+
+    <a asp-controller="Shop" asp-action="Index" class="btn btn-primary">
+        Continue Shopping
+    </a>
+</div>
+
+<script>
+    setTimeout(function(){
+        window.location.href = "/Shop";
+    }, 3000);
+</script>

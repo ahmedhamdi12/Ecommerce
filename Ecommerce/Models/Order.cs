@@ -15,6 +15,9 @@ namespace Ecommerce.Models
 
         public string Status { get; set; } = "Pending";
 
+        public string PaymentStatus { get; set; } = "Pending";
+        public string? PaymentMethod { get; set; }
+
         public List<OrderItem> OrderItems { get; set; }
     }
 }

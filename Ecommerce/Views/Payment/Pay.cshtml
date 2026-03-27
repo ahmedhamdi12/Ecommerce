@@ -1,0 +1,48 @@
+﻿@model Ecommerce.Models.Order
+
+<h2>Payment</h2>
+
+<div class="card p-4" style="max-width:400px; margin:auto; border-radius:15px;">
+    
+    <div style="background:#333; color:white; padding:20px; border-radius:10px;">
+        <h5>💳 Credit Card</h5>
+        <p>**** **** **** 1234</p>
+        <p>Card Holder</p>
+    </div>
+
+    <br />
+
+    <p><strong>Total:</strong> @Model.Total EGP</p>
+
+    <form asp-action="ConfirmPayment" method="post">
+        <input type="hidden" name="id" value="@Model.Id" />
+
+        <div class="form-group">
+            <label>Payment Method</label>
+            <select name="paymentMethod" class="form-control">
+                <option value="Visa">Visa</option>
+                <option value="Cash">Cash</option>
+                <option value="PayPal">PayPal</option>
+            </select>
+        </div>
+
+        <br />
+
+        <button type="submit" class="btn btn-success w-100" onclick="showLoading()">
+            Pay Now
+        </button>
+    </form>
+
+</div>
+
+<div id="loading" style="display:none; text-align:center; margin-top:20px;">
+    <h4>⏳ Processing Payment...</h4>
+</div>
+
+@section Scripts{
+<script>
+    function showLoading() {
+        document.getElementById("loading").style.display = "block";
+    }
+</script>
+}

@@ -47,7 +47,7 @@ namespace Ecommerce.Controllers
 
             HttpContext.Session.Remove("Cart");
 
-            return RedirectToAction("Details" , new {id= order.Id});
+            return RedirectToAction("Pay" ,"Payment", new {id= order.Id});
         }
 
         public IActionResult Details(int id)
