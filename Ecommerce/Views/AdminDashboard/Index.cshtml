@@ -1,0 +1,46 @@
+﻿<h2>📊 Admin Dashboard</h2>
+
+<div class="row text-center">
+
+    <div class="col-md-4">
+        <div class="card p-3 bg-primary text-white">
+            <h4>Orders</h4>
+            <h2>@ViewBag.TotalOrders</h2>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card p-3 bg-success text-white">
+            <h4>Revenue</h4>
+            <h2>@ViewBag.TotalRevenue EGP</h2>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card p-3 bg-dark text-white">
+            <h4>Users</h4>
+            <h2>@ViewBag.TotalUsers</h2>
+        </div>
+    </div>
+
+</div>
+<canvas id="ordersChart" height="100"></canvas>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <script>
+        var ctx = document.getElementById('ordersChart').getContext('2d');
+
+        var chart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: ['Orders', 'Users'],
+                datasets: [{
+                    label: 'System Stats',
+                    data: [@ViewBag.TotalOrders, @ViewBag.TotalUsers]
+                }]
+            }
+        });
+    </script>
+}
