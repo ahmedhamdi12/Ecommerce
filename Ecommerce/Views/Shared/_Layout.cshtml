@@ -3,67 +3,504 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"] - Ecommerce</title>
+    <title>@ViewData["Title"] - MyStore</title>
     <script type="importmap"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/Ecommerce.styles.css" asp-append-version="true" />
+
+    <style>
+        :root {
+            --brand-dark: #0f0f0f;
+            --brand-mid: #1c1c1e;
+            --brand-accent: #c9a96e;
+            --brand-accent2: #e8c99a;
+            --brand-light: #f5f0e8;
+            --brand-white: #fdfcfa;
+            --nav-height: 68px;
+            --radius-sm: 6px;
+            --radius-md: 12px;
+            --transition: 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        /* ── Reset & Base ─────────────────────────────────────────── */
+        *, *::before, *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: 'DM Sans', sans-serif;
+            background: var(--brand-white);
+            color: var(--brand-dark);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* ── Top Announcement Bar ─────────────────────────────────── */
+        .announcement-bar {
+            background: var(--brand-dark);
+            color: var(--brand-accent);
+            text-align: center;
+            font-size: 0.72rem;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            font-weight: 500;
+            padding: 9px 16px;
+        }
+
+        /* ── Navbar ───────────────────────────────────────────────── */
+        .site-nav {
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            background: rgba(253, 252, 250, 0.92);
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
+            border-bottom: 1px solid rgba(201, 169, 110, 0.18);
+            height: var(--nav-height);
+            display: flex;
+            align-items: center;
+            transition: box-shadow var(--transition);
+        }
+
+            .site-nav.scrolled {
+                box-shadow: 0 4px 32px rgba(0,0,0,0.08);
+            }
+
+        .nav-inner {
+            width: 100%;
+            max-width: 1280px;
+            margin: 0 auto;
+            padding: 0 28px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 24px;
+        }
+
+        /* Brand */
+        .nav-brand {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.45rem;
+            font-weight: 700;
+            color: var(--brand-dark);
+            text-decoration: none;
+            letter-spacing: -0.01em;
+            white-space: nowrap;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+            .nav-brand .brand-dot {
+                width: 7px;
+                height: 7px;
+                border-radius: 50%;
+                background: var(--brand-accent);
+                display: inline-block;
+                margin-bottom: 2px;
+            }
+
+            .nav-brand:hover {
+                color: var(--brand-dark);
+            }
+
+        /* Nav links */
+        .nav-links {
+            display: flex;
+            align-items: center;
+            gap: 2px;
+            list-style: none;
+        }
+
+            .nav-links .nav-link {
+                font-size: 0.875rem;
+                font-weight: 500;
+                color: #555;
+                text-decoration: none;
+                padding: 7px 14px;
+                border-radius: var(--radius-sm);
+                transition: color var(--transition), background var(--transition);
+                letter-spacing: 0.01em;
+            }
+
+                .nav-links .nav-link:hover,
+                .nav-links .nav-link.active {
+                    color: var(--brand-dark);
+                    background: rgba(201, 169, 110, 0.1);
+                }
+
+                /* Admin badge links */
+                .nav-links .nav-link.admin-link {
+                    color: var(--brand-accent);
+                }
+
+                    .nav-links .nav-link.admin-link:hover {
+                        background: rgba(201, 169, 110, 0.15);
+                        color: #a87c3e;
+                    }
+
+        /* Admin section divider */
+        .nav-divider {
+            width: 1px;
+            height: 20px;
+            background: rgba(201, 169, 110, 0.3);
+            margin: 0 6px;
+        }
+
+        /* Cart icon */
+        .cart-link {
+            position: relative;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+            .cart-link svg {
+                width: 20px;
+                height: 20px;
+                stroke: currentColor;
+                fill: none;
+                stroke-width: 1.8;
+                stroke-linecap: round;
+                stroke-linejoin: round;
+            }
+
+        /* Nav right */
+        .nav-right {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* Hamburger */
+        .nav-toggle {
+            display: none;
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 8px;
+            color: var(--brand-dark);
+        }
+
+            .nav-toggle svg {
+                width: 22px;
+                height: 22px;
+                stroke: currentColor;
+                fill: none;
+                stroke-width: 2;
+                stroke-linecap: round;
+            }
+
+        /* Mobile drawer */
+        .nav-drawer {
+            display: none;
+            position: fixed;
+            top: var(--nav-height);
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: var(--brand-white);
+            z-index: 999;
+            padding: 24px 28px;
+            flex-direction: column;
+            gap: 4px;
+            border-top: 1px solid rgba(201,169,110,0.18);
+            overflow-y: auto;
+        }
+
+            .nav-drawer.open {
+                display: flex;
+            }
+
+            .nav-drawer .nav-link {
+                font-size: 1rem;
+                color: var(--brand-dark);
+                text-decoration: none;
+                font-weight: 500;
+                padding: 12px 0;
+                border-bottom: 1px solid rgba(0,0,0,0.06);
+                transition: color var(--transition);
+            }
+
+                .nav-drawer .nav-link:hover {
+                    color: var(--brand-accent);
+                }
+
+        /* ── Main content ─────────────────────────────────────────── */
+        .site-main {
+            flex: 1;
+            max-width: 1280px;
+            width: 100%;
+            margin: 0 auto;
+            padding: 40px 28px 64px;
+        }
+
+        /* ── Footer ───────────────────────────────────────────────── */
+        .site-footer {
+            background: var(--brand-dark);
+            color: rgba(255,255,255,0.45);
+            font-size: 0.82rem;
+        }
+
+        .footer-inner {
+            max-width: 1280px;
+            margin: 0 auto;
+            padding: 48px 28px 28px;
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 40px;
+        }
+
+        .footer-brand {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.3rem;
+            color: var(--brand-white);
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+
+        .footer-tagline {
+            line-height: 1.65;
+        }
+
+        .footer-heading {
+            font-size: 0.7rem;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            color: var(--brand-accent);
+            font-weight: 600;
+            margin-bottom: 14px;
+        }
+
+        .footer-links {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+            .footer-links a {
+                color: rgba(255,255,255,0.45);
+                text-decoration: none;
+                transition: color var(--transition);
+            }
+
+                .footer-links a:hover {
+                    color: var(--brand-accent2);
+                }
+
+        .footer-bottom {
+            max-width: 1280px;
+            margin: 0 auto;
+            padding: 18px 28px;
+            border-top: 1px solid rgba(255,255,255,0.07);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+            .footer-bottom a {
+                color: rgba(255,255,255,0.4);
+                text-decoration: none;
+            }
+
+                .footer-bottom a:hover {
+                    color: var(--brand-accent);
+                }
+
+        /* ── Responsive ───────────────────────────────────────────── */
+        @@media (max-width: 900px) {
+            .footer-inner {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+
+        @@media (max-width: 768px) {
+            .nav-links {
+                display: none;
+            }
+
+            .nav-toggle {
+                display: flex;
+            }
+
+            .footer-inner {
+                grid-template-columns: 1fr;
+                gap: 28px;
+            }
+        }
+
+        @@media (max-width: 480px) {
+            .site-main {
+                padding: 24px 16px 48px;
+            }
+        }
+    </style>
 </head>
 <body>
-    <header>
-        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
-            <div class="container-fluid">
-                <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">Ecommerce</a>
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
-                        aria-expanded="false" aria-label="Toggle navigation">
-                    <span class="navbar-toggler-icon"></span>
-                </button>
-                <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
-                    <ul class="navbar-nav flex-grow-1">
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index">Home</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
-                        </li>
-                        @if (User.IsInRole("Admin"))
-                        {
-                            <li class="nav-item">
-                                <a class="nav-link text-dark" asp-area="" asp-controller="Products" asp-action="Index">Products</a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link text-dark" asp-area="" asp-controller="Categories" asp-action="Index">Categories</a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link text-dark" asp-area="" asp-controller="AdminOrders" asp-action="Index">Orders</a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link text-dark" asp-area="" asp-controller="AdminDashboard" asp-action="Index">
-                                    Dashboard
-                                </a>
-                            </li>
-                        }
-                        
-                    </ul>
-                    <partial name="_LoginPartial" />
-                </div>
-            </div>
-        </nav>
-    </header>
-    <div class="container">
-        <main role="main" class="pb-3">
-            @RenderBody()
-        </main>
+
+    <!-- Announcement Bar -->
+    <div class="announcement-bar">
+        Free shipping on orders over $75 &nbsp;·&nbsp; New arrivals every week
     </div>
 
-    <footer class="border-top footer text-muted">
-        <div class="container">
-            &copy; 2026 - Ecommerce - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
+    <!-- Navigation -->
+    <nav class="site-nav" id="siteNav">
+        <div class="nav-inner">
+
+            <!-- Brand -->
+            <a class="nav-brand" asp-area="" asp-controller="Home" asp-action="Index">
+                MyStore<span class="brand-dot"></span>
+            </a>
+
+            <!-- Desktop links -->
+            <ul class="nav-links">
+                <li>
+                    <a class="nav-link" asp-area="" asp-controller="Shop" asp-action="Index">Shop</a>
+                </li>
+                <li>
+                    <a class="nav-link cart-link" asp-area="" asp-controller="Cart" asp-action="Index">
+                        <svg viewBox="0 0 24 24"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z" /><line x1="3" y1="6" x2="21" y2="6" /><path d="M16 10a4 4 0 01-8 0" /></svg>
+                        Cart
+                    </a>
+                </li>
+
+                @if (User.IsInRole("Admin"))
+                {
+                    <li><div class="nav-divider"></div></li>
+                    <li>
+                        <a class="nav-link admin-link" asp-area="" asp-controller="Products" asp-action="Index">Products</a>
+                    </li>
+                    <li>
+                        <a class="nav-link admin-link" asp-area="" asp-controller="Categories" asp-action="Index">Categories</a>
+                    </li>
+                    <li>
+                        <a class="nav-link admin-link" asp-area="" asp-controller="AdminOrders" asp-action="Index">Orders</a>
+                    </li>
+                    <li>
+                        <a class="nav-link admin-link" asp-area="" asp-controller="AdminDashboard" asp-action="Index">Dashboard</a>
+                    </li>
+                }
+            </ul>
+
+            <!-- Right side: login + hamburger -->
+            <div class="nav-right">
+                <partial name="_LoginPartial" />
+                <button class="nav-toggle" id="navToggle" aria-label="Toggle navigation">
+                    <svg id="iconMenu" viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6" /><line x1="3" y1="12" x2="21" y2="12" /><line x1="3" y1="18" x2="21" y2="18" /></svg>
+                    <svg id="iconClose" viewBox="0 0 24 24" style="display:none"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Mobile Drawer -->
+    <div class="nav-drawer" id="navDrawer">
+        <a class="nav-link" asp-area="" asp-controller="Shop" asp-action="Index">Shop</a>
+        <a class="nav-link" asp-area="" asp-controller="Cart" asp-action="Index">Cart</a>
+        @if (User.IsInRole("Admin"))
+        {
+            <a class="nav-link" asp-area="" asp-controller="Products" asp-action="Index">Products</a>
+            <a class="nav-link" asp-area="" asp-controller="Categories" asp-action="Index">Categories</a>
+            <a class="nav-link" asp-area="" asp-controller="AdminOrders" asp-action="Index">Orders</a>
+            <a class="nav-link" asp-area="" asp-controller="AdminDashboard" asp-action="Index">Dashboard</a>
+        }
+    </div>
+
+    <!-- Main Content -->
+    <main class="site-main" role="main">
+        @RenderBody()
+    </main>
+
+    <!-- Footer -->
+    <footer class="site-footer">
+        <div class="footer-inner">
+            <div>
+                <div class="footer-brand">MyStore</div>
+                <p class="footer-tagline">Curated products, delivered with care. Quality you can trust, style you'll love.</p>
+            </div>
+            <div>
+                <div class="footer-heading">Quick Links</div>
+                <ul class="footer-links">
+                    <li><a asp-area="" asp-controller="Shop" asp-action="Index">Shop All</a></li>
+                    <li><a asp-area="" asp-controller="Cart" asp-action="Index">My Cart</a></li>
+                    <li><a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy Policy</a></li>
+                </ul>
+            </div>
+            <div>
+                <div class="footer-heading">Support</div>
+                <ul class="footer-links">
+                    <li><a href="#">Contact Us</a></li>
+                    <li><a href="#">Shipping Info</a></li>
+                    <li><a href="#">Returns</a></li>
+                    <li><a href="#">FAQ</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <span>&copy; 2026 MyStore. All rights reserved.</span>
+            <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
         </div>
     </footer>
+
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
+
+    <script>
+        // Sticky nav shadow on scroll
+        const nav = document.getElementById('siteNav');
+        window.addEventListener('scroll', () => {
+            nav.classList.toggle('scrolled', window.scrollY > 10);
+        }, { passive: true });
+
+        // Mobile drawer toggle
+        const toggle = document.getElementById('navToggle');
+        const drawer = document.getElementById('navDrawer');
+        const iconMenu = document.getElementById('iconMenu');
+        const iconClose = document.getElementById('iconClose');
+
+        toggle.addEventListener('click', () => {
+            const isOpen = drawer.classList.toggle('open');
+            iconMenu.style.display = isOpen ? 'none' : 'block';
+            iconClose.style.display = isOpen ? 'block' : 'none';
+            document.body.style.overflow = isOpen ? 'hidden' : '';
+        });
+
+        // Close drawer on link click
+        drawer.querySelectorAll('.nav-link').forEach(link => {
+            link.addEventListener('click', () => {
+                drawer.classList.remove('open');
+                iconMenu.style.display = 'block';
+                iconClose.style.display = 'none';
+                document.body.style.overflow = '';
+            });
+        });
+
+        // Active nav link highlight
+        const currentPath = window.location.pathname.toLowerCase();
+        document.querySelectorAll('.nav-links .nav-link, .nav-drawer .nav-link').forEach(link => {
+            const href = link.getAttribute('href') || '';
+            if (href && currentPath.startsWith(href.toLowerCase()) && href !== '/') {
+                link.classList.add('active');
+            }
+        });
+    </script>
+
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>

@@ -1,20 +1,350 @@
 ﻿@model Ecommerce.Models.Product
 @{
-    ViewData["Title"] = "Details";
+    ViewData["Title"] = Model.Name;
+    var priceFormatted = Model.Price.ToString("N0");
 }
 
-<div class="row">
-    <div class="col-md-6">
-        <img src="~/images/@Model.ImageUrl" style="width:100%" />
+<style>
+    /* ── Details Page ─────────────────────────────────────────── */
+    .details-wrap {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 56px;
+        align-items: start;
+        padding: 40px 0 64px;
+    }
+
+    /* ── Image Side ───────────────────────────────────────────── */
+    .details-img-wrap {
+        position: sticky;
+        top: 88px;
+        border-radius: 18px;
+        overflow: hidden;
+        background: #f0ebe2;
+        aspect-ratio: 1 / 1;
+    }
+    .details-img-wrap img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+        transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .details-img-wrap:hover img {
+        transform: scale(1.04);
+    }
+
+    /* ── Info Side ────────────────────────────────────────────── */
+    .details-info {
+        display: flex;
+        flex-direction: column;
+        gap: 0;
+        padding-top: 8px;
+    }
+
+    /* Breadcrumb */
+    .details-breadcrumb {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 0.75rem;
+        color: #999;
+        margin-bottom: 20px;
+        text-decoration: none;
+    }
+    .details-breadcrumb a {
+        color: #999;
+        text-decoration: none;
+        transition: color 0.2s;
+    }
+    .details-breadcrumb a:hover { color: var(--brand-accent, #c9a96e); }
+    .details-breadcrumb svg {
+        width: 12px; height: 12px;
+        stroke: #ccc; fill: none; stroke-width: 2; stroke-linecap: round;
+    }
+
+    /* Category pill */
+    .details-category {
+        display: inline-flex;
+        align-items: center;
+        background: rgba(201,169,110,0.1);
+        color: #a07840;
+        border: 1px solid rgba(201,169,110,0.3);
+        border-radius: 999px;
+        font-size: 0.7rem;
+        font-weight: 600;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        padding: 4px 12px;
+        margin-bottom: 16px;
+        width: fit-content;
+    }
+
+    /* Title */
+    .details-title {
+        font-family: 'Playfair Display', serif;
+        font-size: clamp(1.6rem, 3vw, 2.4rem);
+        font-weight: 700;
+        color: #0f0f0f;
+        line-height: 1.2;
+        letter-spacing: -0.02em;
+        margin: 0 0 20px;
+    }
+
+    /* Price */
+    .details-price-row {
+        display: flex;
+        align-items: baseline;
+        gap: 6px;
+        margin-bottom: 28px;
+        padding-bottom: 28px;
+        border-bottom: 1px solid rgba(0,0,0,0.07);
+    }
+    .details-price {
+        font-family: 'Playfair Display', serif;
+        font-size: 2rem;
+        font-weight: 700;
+        color: #0f0f0f;
+        letter-spacing: -0.02em;
+    }
+    .details-currency {
+        font-family: 'DM Sans', sans-serif;
+        font-size: 0.9rem;
+        font-weight: 400;
+        color: #888;
+    }
+
+    /* Description */
+    .details-desc-label {
+        font-size: 0.7rem;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        font-weight: 600;
+        color: #aaa;
+        margin-bottom: 10px;
+    }
+    .details-desc {
+        font-size: 0.95rem;
+        line-height: 1.75;
+        color: #444;
+        margin-bottom: 32px;
+    }
+
+    /* Meta row */
+    .details-meta {
+        display: flex;
+        gap: 24px;
+        margin-bottom: 36px;
+        flex-wrap: wrap;
+    }
+    .details-meta-item {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+    }
+    .details-meta-item .meta-label {
+        font-size: 0.68rem;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: #bbb;
+        font-weight: 600;
+    }
+    .details-meta-item .meta-value {
+        font-size: 0.88rem;
+        font-weight: 500;
+        color: #333;
+    }
+
+    /* CTA buttons */
+    .details-actions {
+        display: flex;
+        gap: 12px;
+        margin-bottom: 28px;
+    }
+    .btn-add-to-cart {
+        flex: 1;
+        height: 50px;
+        background: #0f0f0f;
+        color: #fff;
+        border: none;
+        border-radius: 10px;
+        font-family: 'DM Sans', sans-serif;
+        font-size: 0.9rem;
+        font-weight: 600;
+        cursor: pointer;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        letter-spacing: 0.02em;
+        transition: background 0.22s, transform 0.22s;
+    }
+    .btn-add-to-cart:hover {
+        background: var(--brand-accent, #c9a96e);
+        color: #fff;
+        transform: translateY(-1px);
+    }
+    .btn-add-to-cart:active { transform: translateY(0); }
+    .btn-add-to-cart svg {
+        width: 16px; height: 16px;
+        stroke: currentColor; fill: none;
+        stroke-width: 2; stroke-linecap: round;
+    }
+
+    .btn-wishlist {
+        width: 50px; height: 50px;
+        border: 1px solid rgba(0,0,0,0.1);
+        border-radius: 10px;
+        background: #fff;
+        cursor: pointer;
+        display: flex; align-items: center; justify-content: center;
+        transition: border-color 0.2s, background 0.2s;
+        flex-shrink: 0;
+    }
+    .btn-wishlist:hover { border-color: #e74c3c; background: rgba(231,76,60,0.05); }
+    .btn-wishlist svg {
+        width: 18px; height: 18px;
+        stroke: #bbb; fill: none;
+        stroke-width: 2; stroke-linecap: round;
+        transition: stroke 0.2s;
+    }
+    .btn-wishlist:hover svg { stroke: #e74c3c; }
+
+    /* Trust badges */
+    .trust-badges {
+        display: flex;
+        gap: 20px;
+        flex-wrap: wrap;
+        padding-top: 24px;
+        border-top: 1px solid rgba(0,0,0,0.06);
+    }
+    .trust-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 0.78rem;
+        color: #888;
+    }
+    .trust-item svg {
+        width: 16px; height: 16px;
+        stroke: var(--brand-accent, #c9a96e); fill: none;
+        stroke-width: 2; stroke-linecap: round;
+        flex-shrink: 0;
+    }
+
+    /* ── Back link ────────────────────────────────────────────── */
+    .back-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 0.82rem;
+        font-weight: 500;
+        color: #888;
+        text-decoration: none;
+        margin-bottom: 32px;
+        transition: color 0.2s;
+    }
+    .back-link:hover { color: #0f0f0f; }
+    .back-link svg {
+        width: 14px; height: 14px;
+        stroke: currentColor; fill: none;
+        stroke-width: 2; stroke-linecap: round;
+    }
+
+    /* ── Responsive ───────────────────────────────────────────── */
+    @@media (max-width: 768px) {
+        .details-wrap { grid-template-columns: 1fr; gap: 28px; padding: 20px 0 40px; }
+        .details-img-wrap { position: static; aspect-ratio: 4/3; border-radius: 14px; }
+        .details-title { font-size: 1.6rem; }
+        .details-price { font-size: 1.6rem; }
+        .details-actions { flex-direction: column; }
+        .btn-wishlist { width: 100%; border-radius: 10px; height: 46px; }
+    }
+</style>
+
+<!-- Back -->
+<a asp-controller="Shop" asp-action="Index" class="back-link">
+    <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+    Back to Shop
+</a>
+
+<div class="details-wrap">
+
+    <!-- ── Left: Image ──────────────────────────────────────────── -->
+    <div class="details-img-wrap">
+        <img src="~/images/@Model.ImageUrl" alt="@Model.Name" />
     </div>
 
-    <div class="col-md-6">
-        <h2>@Model.Name</h2>
-        <h4>@Model.Price EGP</h4>
-        <p>@Model.Description</p>
-        <p><strong>Category:</strong> @Model.Category.Name</p>
+    <!-- ── Right: Info ──────────────────────────────────────────── -->
+    <div class="details-info">
 
-        <button class="btn btn-success">Add To Cart</button>
+        <!-- Category pill -->
+        <span class="details-category">@Model.Category.Name</span>
+
+        <!-- Title -->
+        <h1 class="details-title">@Model.Name</h1>
+
+        <!-- Price -->
+        <div class="details-price-row">
+            <span class="details-price">@priceFormatted</span>
+            <span class="details-currency">EGP</span>
+        </div>
+
+        <!-- Description -->
+        <p class="details-desc-label">About this product</p>
+        <p class="details-desc">@Model.Description</p>
+
+        <!-- Meta -->
+        <div class="details-meta">
+            <div class="details-meta-item">
+                <span class="meta-label">Category</span>
+                <span class="meta-value">@Model.Category.Name</span>
+            </div>
+            <div class="details-meta-item">
+                <span class="meta-label">Availability</span>
+                <span class="meta-value">In Stock</span>
+            </div>
+            <div class="details-meta-item">
+                <span class="meta-label">SKU</span>
+                <span class="meta-value">#@Model.Id.ToString("D5")</span>
+            </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="details-actions">
+            <a asp-controller="Cart" asp-action="AddToCart" asp-route-id="@Model.Id"
+               class="btn-add-to-cart">
+                <svg viewBox="0 0 24 24">
+                    <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/>
+                    <line x1="3" y1="6" x2="21" y2="6"/>
+                    <path d="M16 10a4 4 0 01-8 0"/>
+                </svg>
+                Add to Cart
+            </a>
+            <button class="btn-wishlist" type="button" title="Save to wishlist">
+                <svg viewBox="0 0 24 24">
+                    <path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/>
+                </svg>
+            </button>
+        </div>
+
+        <!-- Trust badges -->
+        <div class="trust-badges">
+            <div class="trust-item">
+                <svg viewBox="0 0 24 24"><rect x="1" y="3" width="15" height="13" rx="2"/><path d="M16 8h4l3 5v3h-7V8z"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
+                Free delivery over 500 EGP
+            </div>
+            <div class="trust-item">
+                <svg viewBox="0 0 24 24"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
+                Easy returns
+            </div>
+            <div class="trust-item">
+                <svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                Secure checkout
+            </div>
+        </div>
+
     </div>
 </div>
 

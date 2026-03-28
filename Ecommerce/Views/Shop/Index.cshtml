@@ -1,67 +1,536 @@
 ﻿@model List<Ecommerce.Models.Product>
 @{
-    ViewData["Title"] = "Index";
+    ViewData["Title"] = "Shop";
+
+    // Query string values — resolved once, used everywhere below
+    var searchValue      = Context.Request.Query["search"].ToString();
+    var selectedCatId    = Context.Request.Query["categoryId"].ToString();
+    var productCountWord = Model.Count == 1 ? "item" : "items";
+    var hasSearch        = !string.IsNullOrEmpty(searchValue);
+
+    // Pagination — safe defaults in case ViewBag values are null
+    int current    = ViewBag.CurrentPage  != null ? (int)ViewBag.CurrentPage  : 1;
+    int totalPages = ViewBag.TotalPages   != null ? (int)ViewBag.TotalPages   : 1;
+    var prevUrl    = Url.Action("Index", new { page = current - 1, search = searchValue, categoryId = selectedCatId });
+    var nextUrl    = Url.Action("Index", new { page = current + 1, search = searchValue, categoryId = selectedCatId });
 }
 
-<form method="get" class="row mb-4">
+<style>
+    /* ── Page Variables ───────────────────────────────────────── */
+    :root {
+        --gold:       #c9a96e;
+        --gold-light: #e8c99a;
+        --dark:       #0f0f0f;
+        --muted:      #6b6b6b;
+        --border:     rgba(0,0,0,0.08);
+        --card-bg:    #ffffff;
+        --page-bg:    #f7f4ef;
+        --radius:     14px;
+        --trans:      0.22s cubic-bezier(0.4,0,0.2,1);
+    }
 
-    <!-- 🔍 Search -->
-    <div class="col-md-4">
-        <input type="text" name="search" class="form-control" placeholder="Search..." />
+    /* ── Page hero strip ──────────────────────────────────────── */
+    .shop-hero {
+        text-align: center;
+        padding: 52px 0 40px;
+    }
+    .shop-hero-eyebrow {
+        font-size: 0.7rem;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+        color: var(--gold);
+        font-weight: 600;
+        margin-bottom: 10px;
+    }
+    .shop-hero h1 {
+        font-family: 'Playfair Display', serif;
+        font-size: clamp(2rem, 5vw, 3.2rem);
+        font-weight: 700;
+        color: var(--dark);
+        letter-spacing: -0.02em;
+        line-height: 1.1;
+        margin: 0 0 12px;
+    }
+    .shop-hero-sub {
+        font-size: 0.92rem;
+        color: var(--muted);
+    }
+
+    /* ── Filter bar ───────────────────────────────────────────── */
+    .filter-bar {
+        background: #fff;
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        padding: 18px 22px;
+        margin-bottom: 40px;
+        display: flex;
+        gap: 14px;
+        align-items: center;
+        flex-wrap: wrap;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.04);
+    }
+
+    .filter-field {
+        position: relative;
+        flex: 1;
+        min-width: 180px;
+    }
+    .filter-field svg {
+        position: absolute;
+        left: 13px;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 15px;
+        height: 15px;
+        stroke: var(--muted);
+        fill: none;
+        stroke-width: 2;
+        stroke-linecap: round;
+        pointer-events: none;
+    }
+    .filter-input,
+    .filter-select {
+        width: 100%;
+        height: 42px;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        font-family: 'DM Sans', sans-serif;
+        font-size: 0.875rem;
+        color: var(--dark);
+        background: #fafafa;
+        padding: 0 14px 0 38px;
+        outline: none;
+        transition: border-color var(--trans), box-shadow var(--trans);
+        appearance: none;
+        -webkit-appearance: none;
+    }
+    .filter-select { padding-left: 38px; }
+    .filter-input:focus,
+    .filter-select:focus {
+        border-color: var(--gold);
+        box-shadow: 0 0 0 3px rgba(201,169,110,0.15);
+        background: #fff;
+    }
+    .filter-btn {
+        height: 42px;
+        padding: 0 28px;
+        background: var(--dark);
+        color: #fff;
+        border: none;
+        border-radius: 8px;
+        font-family: 'DM Sans', sans-serif;
+        font-size: 0.875rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: background var(--trans), transform var(--trans);
+        white-space: nowrap;
+        letter-spacing: 0.02em;
+        flex-shrink: 0;
+    }
+    .filter-btn:hover { background: #2a2a2a; transform: translateY(-1px); }
+    .filter-btn:active { transform: translateY(0); }
+
+    /* ── Results meta ─────────────────────────────────────────── */
+    .results-meta {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 24px;
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+    .results-count {
+        font-size: 0.82rem;
+        color: var(--muted);
+    }
+    .results-count strong { color: var(--dark); font-weight: 600; }
+
+    /* ── Product Grid ─────────────────────────────────────────── */
+    .products-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+        gap: 24px;
+        margin-bottom: 48px;
+    }
+
+    /* ── Product Card ─────────────────────────────────────────── */
+    .product-card {
+        background: var(--card-bg);
+        border-radius: var(--radius);
+        border: 1px solid var(--border);
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        transition: transform var(--trans), box-shadow var(--trans);
+        animation: fadeUp 0.4s ease both;
+    }
+    .product-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 16px 48px rgba(0,0,0,0.10);
+    }
+
+    /* Staggered fade-in */
+    @for (int i = 1; i <= 20; i++) {
+        <text>.product-card:nth-child(@i) { animation-delay: @(i * 0.05)s; }</text>
+    }
+
+    @@keyframes fadeUp {
+        from { opacity:0; transform:translateY(16px); }
+        to   { opacity:1; transform:translateY(0); }
+    }
+
+    /* Image wrapper */
+    .product-img-wrap {
+        position: relative;
+        overflow: hidden;
+        background: var(--page-bg);
+        aspect-ratio: 4/3;
+    }
+    .product-img-wrap img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.5s cubic-bezier(0.4,0,0.2,1);
+        display: block;
+    }
+    .product-card:hover .product-img-wrap img {
+        transform: scale(1.06);
+    }
+
+    /* Category badge on image */
+    .product-category-badge {
+        position: absolute;
+        top: 12px;
+        left: 12px;
+        background: rgba(255,255,255,0.92);
+        backdrop-filter: blur(6px);
+        border-radius: 999px;
+        font-size: 0.68rem;
+        font-weight: 600;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--muted);
+        padding: 4px 10px;
+        border: 1px solid rgba(0,0,0,0.07);
+    }
+
+    /* Quick-add overlay */
+    .product-overlay {
+        position: absolute;
+        inset: 0;
+        background: rgba(15,15,15,0.45);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        opacity: 0;
+        transition: opacity var(--trans);
+    }
+    .product-card:hover .product-overlay { opacity: 1; }
+    .overlay-add-btn {
+        background: #fff;
+        color: var(--dark);
+        border: none;
+        border-radius: 999px;
+        font-family: 'DM Sans', sans-serif;
+        font-size: 0.8rem;
+        font-weight: 600;
+        padding: 10px 22px;
+        cursor: pointer;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+        transform: translateY(6px);
+        transition: transform var(--trans), background var(--trans);
+    }
+    .product-card:hover .overlay-add-btn { transform: translateY(0); }
+    .overlay-add-btn:hover { background: var(--gold-light); color: var(--dark); }
+    .overlay-add-btn svg {
+        width: 14px; height: 14px;
+        stroke: currentColor; fill: none;
+        stroke-width: 2; stroke-linecap: round;
+    }
+
+    /* Body */
+    .product-body {
+        padding: 16px 18px 18px;
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+    }
+    .product-name {
+        font-size: 0.95rem;
+        font-weight: 600;
+        color: var(--dark);
+        line-height: 1.35;
+        margin: 0;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+    .product-price {
+        font-family: 'Playfair Display', serif;
+        font-size: 1.05rem;
+        font-weight: 700;
+        color: var(--dark);
+        margin: 2px 0 0;
+    }
+    .product-price span {
+        font-family: 'DM Sans', sans-serif;
+        font-size: 0.75rem;
+        font-weight: 400;
+        color: var(--muted);
+        margin-left: 2px;
+    }
+
+    /* Footer actions */
+    .product-footer {
+        padding: 0 18px 18px;
+        display: flex;
+        gap: 8px;
+    }
+    .btn-details {
+        flex: 1;
+        height: 38px;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        background: transparent;
+        color: var(--muted);
+        font-family: 'DM Sans', sans-serif;
+        font-size: 0.8rem;
+        font-weight: 500;
+        text-decoration: none;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all var(--trans);
+    }
+    .btn-details:hover {
+        border-color: var(--dark);
+        color: var(--dark);
+        background: rgba(0,0,0,0.03);
+    }
+    .btn-add-cart {
+        flex: 2;
+        height: 38px;
+        border: none;
+        border-radius: 8px;
+        background: var(--dark);
+        color: #fff;
+        font-family: 'DM Sans', sans-serif;
+        font-size: 0.8rem;
+        font-weight: 500;
+        text-decoration: none;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        transition: background var(--trans), transform var(--trans);
+    }
+    .btn-add-cart:hover {
+        background: var(--gold);
+        color: #fff;
+        transform: translateY(-1px);
+    }
+    .btn-add-cart svg {
+        width: 13px; height: 13px;
+        stroke: currentColor; fill: none;
+        stroke-width: 2.2; stroke-linecap: round;
+    }
+
+    /* ── Empty state ──────────────────────────────────────────── */
+    .empty-state {
+        text-align: center;
+        padding: 80px 20px;
+        grid-column: 1 / -1;
+    }
+    .empty-icon {
+        width: 64px; height: 64px;
+        border-radius: 50%;
+        background: var(--page-bg);
+        display: flex; align-items: center; justify-content: center;
+        margin: 0 auto 20px;
+    }
+    .empty-icon svg { width: 28px; height: 28px; stroke: var(--muted); fill: none; stroke-width: 1.5; stroke-linecap: round; }
+    .empty-state h3 { font-size: 1.1rem; color: var(--dark); margin: 0 0 8px; font-weight: 600; }
+    .empty-state p { font-size: 0.875rem; color: var(--muted); }
+
+    /* ── Pagination ───────────────────────────────────────────── */
+    .pagination-wrap {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 6px;
+        padding: 16px 0 32px;
+        flex-wrap: wrap;
+    }
+    .page-btn {
+        width: 38px; height: 38px;
+        border-radius: 8px;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 0.85rem;
+        font-weight: 500;
+        text-decoration: none;
+        color: var(--muted);
+        border: 1px solid var(--border);
+        background: #fff;
+        transition: all var(--trans);
+        font-family: 'DM Sans', sans-serif;
+    }
+    .page-btn:hover {
+        border-color: var(--gold);
+        color: var(--dark);
+        background: rgba(201,169,110,0.06);
+    }
+    .page-btn.active {
+        background: var(--dark);
+        color: #fff;
+        border-color: var(--dark);
+    }
+    .page-ellipsis {
+        width: 38px; height: 38px;
+        display: flex; align-items: center; justify-content: center;
+        color: var(--muted); font-size: 0.85rem;
+    }
+
+    @@media (max-width: 600px) {
+        .filter-bar { flex-direction: column; }
+        .filter-field { min-width: 100%; }
+        .filter-btn { width: 100%; }
+        .products-grid { grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 14px; }
+    }
+</style>
+
+<!-- ── Hero ──────────────────────────────────────────────────── -->
+<div class="shop-hero">
+    <div class="shop-hero-eyebrow">Curated Collection</div>
+    <h1>Our Products</h1>
+    <p class="shop-hero-sub">@Model.Count @productCountWord available</p>
+</div>
+
+<!-- ── Filter Bar ─────────────────────────────────────────────── -->
+<form method="get" class="filter-bar">
+
+    <!-- Search -->
+    <div class="filter-field">
+        <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        <input type="text" name="search" class="filter-input"
+               placeholder="Search products…"
+               value="@searchValue" />
     </div>
 
-    <!-- 🏷️ Category Filter -->
-    <div class="col-md-4">
-        <select name="categoryId" class="form-control">
+    <!-- Category -->
+    <div class="filter-field">
+        <svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h8m-8 6h16"/></svg>
+        <select name="categoryId" class="filter-select">
             <option value="">All Categories</option>
             @foreach (var cat in ViewBag.Categories)
             {
-                <option value="@cat.Id">@cat.Name</option>
+                var isSelected = selectedCatId == cat.Id.ToString();
+                <option value="@cat.Id" selected="@isSelected">@cat.Name</option>
             }
         </select>
     </div>
 
-    <div class="col-md-4">
-        <button type="submit" class="btn btn-primary w-100">Filter</button>
-    </div>
-
+    <button type="submit" class="filter-btn">Filter</button>
 </form>
-<h1>Products</h1>
-<div class="row">
+
+<!-- ── Results meta ───────────────────────────────────────────── -->
+<div class="results-meta">
+    <p class="results-count">
+        Showing <strong>@Model.Count</strong> @productCountWord
+        @if (hasSearch)
+        {
+            <text> for "<strong>@searchValue</strong>"</text>
+        }
+    </p>
+</div>
+
+<!-- ── Product Grid ───────────────────────────────────────────── -->
+<div class="products-grid">
+    @if (!Model.Any())
+    {
+        <div class="empty-state">
+            <div class="empty-icon">
+                <svg viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
+            </div>
+            <h3>No products found</h3>
+            <p>Try adjusting your search or filter criteria.</p>
+        </div>
+    }
+
     @foreach (var item in Model)
     {
-        <div class="col-md-3 mb-4">
-            <div class="card">
-                <img src="~/images/@item.ImageUrl" class="card-img-top" style="height:200px; object-fit:cover;" />
+        <div class="product-card">
 
-                <div class="card-body">
-                    <h5>@item.Name</h5>
-                    <p>@item.Price EGP</p>
-                    <p>@item.Category.Name</p>
+            <!-- Image -->
+            <div class="product-img-wrap">
+                <img src="~/images/@item.ImageUrl" alt="@item.Name" loading="lazy" />
 
-                    <a asp-controller="Cart" asp-action="AddToCart" asp-route-id="@item.Id" class="btn btn-success">
-                        Add To Cart
-                    </a>
-                    <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-primary">
-                        Details
+                <span class="product-category-badge">@item.Category.Name</span>
+
+                <!-- Hover overlay quick-add -->
+                <div class="product-overlay">
+                    <a asp-controller="Cart" asp-action="AddToCart" asp-route-id="@item.Id"
+                       class="overlay-add-btn">
+                        <svg viewBox="0 0 24 24"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/></svg>
+                        Quick Add
                     </a>
                 </div>
+            </div>
+
+            <!-- Body -->
+            <div class="product-body">
+                <p class="product-name">@item.Name</p>
+                <p class="product-price">@item.Price.ToString("N0") <span>EGP</span></p>
+            </div>
+
+            <!-- Actions -->
+            <div class="product-footer">
+                <a asp-action="Details" asp-route-id="@item.Id" class="btn-details">Details</a>
+                <a asp-controller="Cart" asp-action="AddToCart" asp-route-id="@item.Id"
+                   class="btn-add-cart">
+                    <svg viewBox="0 0 24 24"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/></svg>
+                    Add to Cart
+                </a>
             </div>
         </div>
     }
 </div>
-<div class="d-flex justify-content-center mt-4">
 
-    @for (int i = 1; i <= ViewBag.TotalPages; i++)
-    {
-        <a class="btn btn-outline-primary mx-1 @(i == ViewBag.CurrentPage ? "active" : "")"
-           href="@Url.Action("Index", new { 
-                page = i, 
-                search = Context.Request.Query["search"], 
-                categoryId = Context.Request.Query["categoryId"] 
-            })">
-            @i
-        </a>
-    }
+<!-- ── Pagination ─────────────────────────────────────────────── -->
+@if (totalPages > 1)
+{
+    <div class="pagination-wrap">
 
-</div>
+        @* Prev arrow *@
+        @if (current > 1)
+        {
+            <a class="page-btn" href="@prevUrl">&#8592;</a>
+        }
+
+        @* Page numbers with ellipsis *@
+        @for (int i = 1; i <= totalPages; i++)
+        {
+            if (i == 1 || i == totalPages || (i >= current - 1 && i <= current + 1))
+            {
+                var pageUrl     = Url.Action("Index", new { page = i, search = searchValue, categoryId = selectedCatId });
+                var activeClass = i == current ? "active" : "";
+                <a class="page-btn @activeClass" href="@pageUrl">@i</a>
+            }
+            else if (i == current - 2 || i == current + 2)
+            {
+                <span class="page-ellipsis">…</span>
+            }
+        }
+
+        @* Next arrow *@
+        @if (current < totalPages)
+        {
+            <a class="page-btn" href="@nextUrl">&#8594;</a>
+        }
+
+    </div>
+}

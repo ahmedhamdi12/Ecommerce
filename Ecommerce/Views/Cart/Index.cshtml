@@ -1,44 +1,571 @@
 ﻿@model List<Ecommerce.Models.CartItem>
-
 @{
-    ViewData["Title"] = "Index";
-}
-@{
+    ViewData["Title"] = "Your Cart";
     decimal total = Model.Sum(item => item.Price * item.Quantity);
+    string totalFmt = total.ToString("N0");
+    bool isEmpty = !Model.Any();
 }
 
-<h2>Your Cart</h2>
-
-<table class="table">
-    <tr>
-        <th>Image</th>
-        <th>Name</th>
-        <th>Price</th>
-        <th>Quantity</th>
-        <th>Total</th>
-        <th></th>
-    </tr>
-
-    @foreach (var item in Model)
-    {
-        <tr>
-            <td><img src="~/images/@item.ImageUrl" width="80" /></td>
-            <td>@item.Name</td>
-            <td>@item.Price</td>
-            <td>@item.Quantity</td>
-            <td>@(item.Price* item.Quantity)</td>
-            <td>
-                <a asp-action="Increase" asp-route-id="@item.ProductId" class="btn btn-success">+</a>
-                <a asp-action="Decrease" asp-route-id="@item.ProductId" class="btn btn-warning">-</a>
-            </td>
-            
-            <td>
-                <a asp-action="Remove" asp-route-id="@item.ProductId" class="btn btn-danger">Remove</a>
-            </td>
-        </tr>
-        
+<style>
+    /* ── Cart Page ────────────────────────────────────────────── */
+    .cart-wrap {
+        display: grid;
+        grid-template-columns: 1fr 340px;
+        gap: 32px;
+        align-items: start;
+        padding: 36px 0 64px;
     }
-    <a asp-action="Clear" class="btn btn-danger p-6">Clear Cart</a>
-    <a asp-controller="Order" asp-action="Checkout" class="btn btn-primary p-6">Checkout</a>
-</table>
-<h3>Total : @total EGP</h3>
+
+    /* ── Page heading ─────────────────────────────────────────── */
+    .cart-heading {
+        margin-bottom: 28px;
+    }
+
+    .cart-eyebrow {
+        font-size: 0.7rem;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+        color: var(--brand-accent, #c9a96e);
+        font-weight: 600;
+        margin-bottom: 6px;
+    }
+
+    .cart-title {
+        font-family: 'Playfair Display', serif;
+        font-size: clamp(1.6rem, 3vw, 2.2rem);
+        font-weight: 700;
+        color: #0f0f0f;
+        letter-spacing: -0.02em;
+        margin: 0;
+    }
+
+    .cart-count {
+        font-size: 0.82rem;
+        color: #999;
+        margin-top: 4px;
+    }
+
+    /* ── Cart Items Panel ─────────────────────────────────────── */
+    .cart-items {
+        background: #fff;
+        border: 1px solid rgba(0,0,0,0.07);
+        border-radius: 16px;
+        overflow: hidden;
+    }
+
+    .cart-item {
+        display: grid;
+        grid-template-columns: 80px 1fr auto auto;
+        gap: 16px;
+        align-items: center;
+        padding: 20px 24px;
+        border-bottom: 1px solid rgba(0,0,0,0.05);
+        transition: background 0.15s;
+    }
+
+        .cart-item:last-child {
+            border-bottom: none;
+        }
+
+        .cart-item:hover {
+            background: #fdfcfa;
+        }
+
+    /* Image */
+    .cart-item-img {
+        width: 80px;
+        height: 80px;
+        border-radius: 10px;
+        object-fit: cover;
+        background: #f0ebe2;
+        display: block;
+        flex-shrink: 0;
+    }
+
+    /* Info */
+    .cart-item-info {
+        min-width: 0;
+    }
+
+    .cart-item-name {
+        font-size: 0.95rem;
+        font-weight: 600;
+        color: #0f0f0f;
+        margin: 0 0 4px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .cart-item-price {
+        font-size: 0.82rem;
+        color: #999;
+    }
+
+    /* Qty control */
+    .cart-qty {
+        display: flex;
+        align-items: center;
+        border: 1px solid rgba(0,0,0,0.1);
+        border-radius: 8px;
+        overflow: hidden;
+        flex-shrink: 0;
+    }
+
+    .cart-qty-btn {
+        width: 34px;
+        height: 34px;
+        background: #fafafa;
+        border: none;
+        font-size: 1.1rem;
+        color: #555;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-decoration: none;
+        transition: background 0.15s, color 0.15s;
+        line-height: 1;
+        font-weight: 500;
+    }
+
+        .cart-qty-btn:hover {
+            background: #f0ece5;
+            color: #0f0f0f;
+        }
+
+    .cart-qty-val {
+        width: 36px;
+        height: 34px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.88rem;
+        font-weight: 600;
+        color: #0f0f0f;
+        border-left: 1px solid rgba(0,0,0,0.08);
+        border-right: 1px solid rgba(0,0,0,0.08);
+        background: #fff;
+    }
+
+    /* Item total + remove */
+    .cart-item-right {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+        gap: 10px;
+        flex-shrink: 0;
+    }
+
+    .cart-item-total {
+        font-family: 'Playfair Display', serif;
+        font-size: 1rem;
+        font-weight: 700;
+        color: #0f0f0f;
+    }
+
+    .cart-remove-btn {
+        background: none;
+        border: none;
+        cursor: pointer;
+        color: #ccc;
+        padding: 4px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 6px;
+        transition: color 0.2s, background 0.2s;
+        text-decoration: none;
+    }
+
+        .cart-remove-btn:hover {
+            color: #e74c3c;
+            background: rgba(231,76,60,0.06);
+        }
+
+        .cart-remove-btn svg {
+            width: 16px;
+            height: 16px;
+            stroke: currentColor;
+            fill: none;
+            stroke-width: 2;
+            stroke-linecap: round;
+        }
+
+    /* ── Empty State ──────────────────────────────────────────── */
+    .cart-empty {
+        text-align: center;
+        padding: 64px 24px;
+    }
+
+    .cart-empty-icon {
+        width: 72px;
+        height: 72px;
+        border-radius: 50%;
+        background: #f7f4ef;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 20px;
+    }
+
+        .cart-empty-icon svg {
+            width: 30px;
+            height: 30px;
+            stroke: #ccc;
+            fill: none;
+            stroke-width: 1.5;
+            stroke-linecap: round;
+        }
+
+    .cart-empty h3 {
+        font-size: 1.05rem;
+        color: #0f0f0f;
+        margin: 0 0 6px;
+        font-weight: 600;
+    }
+
+    .cart-empty p {
+        font-size: 0.85rem;
+        color: #999;
+        margin-bottom: 20px;
+    }
+
+    .btn-shop-now {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        background: #0f0f0f;
+        color: #fff;
+        text-decoration: none;
+        padding: 10px 22px;
+        border-radius: 8px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        transition: background 0.2s;
+    }
+
+        .btn-shop-now:hover {
+            background: var(--brand-accent, #c9a96e);
+            color: #fff;
+        }
+
+    /* ── Summary Panel ────────────────────────────────────────── */
+    .cart-summary {
+        background: #fff;
+        border: 1px solid rgba(0,0,0,0.07);
+        border-radius: 16px;
+        padding: 28px;
+        position: sticky;
+        top: 88px;
+    }
+
+    .summary-title {
+        font-size: 0.7rem;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        font-weight: 600;
+        color: #bbb;
+        margin-bottom: 20px;
+    }
+
+    .summary-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 0.88rem;
+        color: #666;
+        margin-bottom: 12px;
+    }
+
+        .summary-row.total {
+            font-size: 1rem;
+            font-weight: 700;
+            color: #0f0f0f;
+            padding-top: 16px;
+            margin-top: 4px;
+            border-top: 1px solid rgba(0,0,0,0.07);
+        }
+
+            .summary-row.total .summary-val {
+                font-family: 'Playfair Display', serif;
+                font-size: 1.4rem;
+                letter-spacing: -0.01em;
+            }
+
+    .summary-divider {
+        border: none;
+        border-top: 1px solid rgba(0,0,0,0.06);
+        margin: 16px 0;
+    }
+
+    /* Promo code */
+    .promo-wrap {
+        display: flex;
+        gap: 8px;
+        margin-bottom: 20px;
+    }
+
+    .promo-input {
+        flex: 1;
+        height: 40px;
+        border: 1px solid rgba(0,0,0,0.1);
+        border-radius: 8px;
+        padding: 0 12px;
+        font-family: 'DM Sans', sans-serif;
+        font-size: 0.82rem;
+        outline: none;
+        transition: border-color 0.2s;
+    }
+
+        .promo-input:focus {
+            border-color: var(--brand-accent, #c9a96e);
+        }
+
+    .promo-btn {
+        height: 40px;
+        padding: 0 14px;
+        border: 1px solid rgba(0,0,0,0.1);
+        border-radius: 8px;
+        background: #fafafa;
+        font-family: 'DM Sans', sans-serif;
+        font-size: 0.8rem;
+        font-weight: 500;
+        cursor: pointer;
+        white-space: nowrap;
+        transition: background 0.2s;
+    }
+
+        .promo-btn:hover {
+            background: #f0ece5;
+        }
+
+    /* CTA */
+    .btn-checkout {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        width: 100%;
+        height: 50px;
+        background: #0f0f0f;
+        color: #fff;
+        border: none;
+        border-radius: 10px;
+        font-family: 'DM Sans', sans-serif;
+        font-size: 0.9rem;
+        font-weight: 600;
+        cursor: pointer;
+        text-decoration: none;
+        transition: background 0.22s, transform 0.18s;
+        margin-bottom: 12px;
+        letter-spacing: 0.02em;
+    }
+
+        .btn-checkout:hover {
+            background: var(--brand-accent, #c9a96e);
+            color: #fff;
+            transform: translateY(-1px);
+        }
+
+        .btn-checkout svg {
+            width: 16px;
+            height: 16px;
+            stroke: currentColor;
+            fill: none;
+            stroke-width: 2;
+            stroke-linecap: round;
+        }
+
+    .btn-clear {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        width: 100%;
+        height: 40px;
+        background: transparent;
+        color: #bbb;
+        border: 1px solid rgba(0,0,0,0.08);
+        border-radius: 10px;
+        font-family: 'DM Sans', sans-serif;
+        font-size: 0.82rem;
+        font-weight: 500;
+        cursor: pointer;
+        text-decoration: none;
+        transition: color 0.2s, border-color 0.2s, background 0.2s;
+    }
+
+        .btn-clear:hover {
+            color: #e74c3c;
+            border-color: rgba(231,76,60,0.25);
+            background: rgba(231,76,60,0.04);
+        }
+
+        .btn-clear svg {
+            width: 13px;
+            height: 13px;
+            stroke: currentColor;
+            fill: none;
+            stroke-width: 2;
+            stroke-linecap: round;
+        }
+
+    /* Trust note */
+    .summary-trust {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 5px;
+        font-size: 0.74rem;
+        color: #bbb;
+        margin-top: 14px;
+    }
+
+        .summary-trust svg {
+            width: 12px;
+            height: 12px;
+            stroke: #bbb;
+            fill: none;
+            stroke-width: 2;
+            stroke-linecap: round;
+        }
+
+    /* ── Responsive ───────────────────────────────────────────── */
+    @@media (max-width: 900px) {
+        .cart-wrap {
+            grid-template-columns: 1fr;
+        }
+
+        .cart-summary {
+            position: static;
+        }
+    }
+
+    @@media (max-width: 600px) {
+        .cart-item {
+            grid-template-columns: 68px 1fr;
+            gap: 12px;
+        }
+
+        .cart-item-right {
+            flex-direction: row;
+            align-items: center;
+            grid-column: 1 / -1;
+            justify-content: space-between;
+        }
+
+        .cart-qty {
+            grid-column: 2;
+        }
+    }
+</style>
+
+<!-- Heading -->
+<div class="cart-heading">
+    <div class="cart-eyebrow">Shopping</div>
+    <h1 class="cart-title">Your Cart</h1>
+    <p class="cart-count">@Model.Count item@(Model.Count == 1 ? "" : "s") in your cart</p>
+</div>
+
+<div class="cart-wrap">
+
+    <!-- ── Left: Items ───────────────────────────────────────── -->
+    <div>
+        <div class="cart-items">
+            @if (isEmpty)
+            {
+                <div class="cart-empty">
+                    <div class="cart-empty-icon">
+                        <svg viewBox="0 0 24 24"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z" /><line x1="3" y1="6" x2="21" y2="6" /><path d="M16 10a4 4 0 01-8 0" /></svg>
+                    </div>
+                    <h3>Your cart is empty</h3>
+                    <p>Looks like you haven't added anything yet.</p>
+                    <a asp-controller="Shop" asp-action="Index" class="btn-shop-now">Browse Products</a>
+                </div>
+            }
+            else
+            {
+                @foreach (var item in Model)
+                {
+                    var itemTotal = (item.Price * item.Quantity).ToString("N0");
+                    var itemPrice = item.Price.ToString("N0");
+
+                    <div class="cart-item">
+
+                        <!-- Image -->
+                        <img src="~/images/@item.ImageUrl" class="cart-item-img" alt="@item.Name" />
+
+                        <!-- Info -->
+                        <div class="cart-item-info">
+                            <p class="cart-item-name">@item.Name</p>
+                            <p class="cart-item-price">@itemPrice EGP / unit</p>
+                        </div>
+
+                        <!-- Qty -->
+                        <div class="cart-qty">
+                            <a asp-action="Decrease" asp-route-id="@item.ProductId" class="cart-qty-btn">−</a>
+                            <span class="cart-qty-val">@item.Quantity</span>
+                            <a asp-action="Increase" asp-route-id="@item.ProductId" class="cart-qty-btn">+</a>
+                        </div>
+
+                        <!-- Total + Remove -->
+                        <div class="cart-item-right">
+                            <span class="cart-item-total">@itemTotal EGP</span>
+                            <a asp-action="Remove" asp-route-id="@item.ProductId" class="cart-remove-btn" title="Remove item">
+                                <svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6" /><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6" /><path d="M10 11v6M14 11v6" /><path d="M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2" /></svg>
+                            </a>
+                        </div>
+
+                    </div>
+                }
+            }
+        </div>
+    </div>
+
+    <!-- ── Right: Summary ────────────────────────────────────── -->
+    <div class="cart-summary">
+        <div class="summary-title">Order Summary</div>
+
+        <div class="summary-row">
+            <span>Subtotal (@Model.Count items)</span>
+            <span>@totalFmt EGP</span>
+        </div>
+        <div class="summary-row">
+            <span>Shipping</span>
+            <span style="color:#2ecc71; font-weight:500;">Free</span>
+        </div>
+
+        <hr class="summary-divider" />
+
+        <!-- Promo code -->
+        <div class="promo-wrap">
+            <input type="text" class="promo-input" placeholder="Promo code" />
+            <button class="promo-btn">Apply</button>
+        </div>
+
+        <div class="summary-row total">
+            <span>Total</span>
+            <span class="summary-val">@totalFmt EGP</span>
+        </div>
+
+        @if (!isEmpty)
+        {
+            <br />
+            <a asp-controller="Order" asp-action="Checkout" class="btn-checkout">
+                <svg viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7" /></svg>
+                Proceed to Checkout
+            </a>
+            <a asp-action="Clear" class="btn-clear">
+                <svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6" /><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6" /></svg>
+                Clear Cart
+            </a>
+        }
+
+        <div class="summary-trust">
+            <svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" /></svg>
+            Secure &amp; encrypted checkout
+        </div>
+    </div>
+
+</div>

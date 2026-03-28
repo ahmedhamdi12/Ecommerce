@@ -2,25 +2,165 @@
 @inject SignInManager<IdentityUser> SignInManager
 @inject UserManager<IdentityUser> UserManager
 
-<ul class="navbar-nav">
 @if (SignInManager.IsSignedIn(User))
 {
-    <li class="nav-item">
-        <a  class="nav-link text-dark" asp-area="Identity" asp-page="/Account/Manage/Index" title="Manage">Hello @User.Identity?.Name!</a>
-    </li>
-    <li class="nav-item">
-        <form  class="form-inline" asp-area="Identity" asp-page="/Account/Logout" asp-route-returnUrl="@Url.Action("Index", "Home", new { area = "" })">
-            <button  type="submit" class="nav-link btn btn-link text-dark">Logout</button>
+    <div class="auth-user-group">
+        <!-- User avatar + name -->
+        <a class="auth-user-btn" asp-area="Identity" asp-page="/Account/Manage/Index" title="Manage your account">
+            <span class="auth-avatar">@User.Identity?.Name?.Substring(0, 1).ToUpper()</span>
+            <span class="auth-name">@User.Identity?.Name</span>
+        </a>
+
+        <!-- Logout -->
+        <form asp-area="Identity" asp-page="/Account/Logout"
+              asp-route-returnUrl="@Url.Action("Index", "Home", new { area = "" })">
+            <button type="submit" class="auth-logout-btn" title="Logout">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+                     stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4" />
+                    <polyline points="16 17 21 12 16 7" />
+                    <line x1="21" y1="12" x2="9" y2="12" />
+                </svg>
+            </button>
         </form>
-    </li>
+    </div>
 }
 else
 {
-    <li class="nav-item">
-        <a class="nav-link text-dark" asp-area="Identity" asp-page="/Account/Register">Register</a>
-    </li>
-    <li class="nav-item">
-        <a class="nav-link text-dark" asp-area="Identity" asp-page="/Account/Login">Login</a>
-    </li>
+    <div class="auth-guest-group">
+        <a class="auth-register-btn" asp-area="Identity" asp-page="/Account/Register">Register</a>
+        <a class="auth-login-btn" asp-area="Identity" asp-page="/Account/Login">Login</a>
+    </div>
 }
-</ul>
+
+<style>
+    /* ── Shared ───────────────────────────────────────────────── */
+    .auth-user-group,
+    .auth-guest-group {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    /* ── Signed-in: avatar pill ───────────────────────────────── */
+    .auth-user-btn {
+        display: flex;
+        align-items: center;
+        gap: 9px;
+        text-decoration: none;
+        padding: 5px 12px 5px 5px;
+        border-radius: 999px;
+        border: 1px solid rgba(201, 169, 110, 0.25);
+        background: rgba(201, 169, 110, 0.07);
+        transition: background 0.2s, border-color 0.2s;
+    }
+
+        .auth-user-btn:hover {
+            background: rgba(201, 169, 110, 0.15);
+            border-color: rgba(201, 169, 110, 0.5);
+        }
+
+    .auth-avatar {
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        background: var(--brand-accent, #c9a96e);
+        color: #fff;
+        font-size: 0.78rem;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        font-family: 'Playfair Display', serif;
+    }
+
+    .auth-name {
+        font-size: 0.82rem;
+        font-weight: 500;
+        color: #333;
+        max-width: 110px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    /* ── Logout icon button ───────────────────────────────────── */
+    .auth-logout-btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: none;
+        border: 1px solid rgba(0,0,0,0.1);
+        border-radius: 50%;
+        width: 34px;
+        height: 34px;
+        cursor: pointer;
+        color: #888;
+        transition: color 0.2s, border-color 0.2s, background 0.2s;
+        padding: 0;
+    }
+
+        .auth-logout-btn:hover {
+            color: #c0392b;
+            border-color: rgba(192, 57, 43, 0.3);
+            background: rgba(192, 57, 43, 0.06);
+        }
+
+        .auth-logout-btn svg {
+            width: 15px;
+            height: 15px;
+        }
+
+    /* ── Guest buttons ────────────────────────────────────────── */
+    .auth-register-btn,
+    .auth-login-btn {
+        font-size: 0.82rem;
+        font-weight: 500;
+        text-decoration: none;
+        padding: 7px 16px;
+        border-radius: 999px;
+        transition: all 0.2s;
+        white-space: nowrap;
+    }
+
+    .auth-register-btn {
+        color: #555;
+        border: 1px solid rgba(0,0,0,0.12);
+        background: transparent;
+    }
+
+        .auth-register-btn:hover {
+            color: #222;
+            border-color: rgba(0,0,0,0.25);
+            background: rgba(0,0,0,0.04);
+        }
+
+    .auth-login-btn {
+        color: #fff;
+        background: var(--brand-dark, #0f0f0f);
+        border: 1px solid transparent;
+    }
+
+        .auth-login-btn:hover {
+            background: #333;
+            color: #fff;
+        }
+
+    /* ── Mobile adjustments ───────────────────────────────────── */
+    @@media (max-width: 768px) {
+        .auth-name {
+            display: none;
+        }
+
+        .auth-user-btn {
+            padding: 5px;
+        }
+
+        .auth-register-btn,
+        .auth-login-btn {
+            padding: 6px 12px;
+            font-size: 0.8rem;
+        }
+    }
+</style>
