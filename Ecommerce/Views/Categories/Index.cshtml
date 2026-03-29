@@ -2,23 +2,23 @@
 
 @{
     Layout = "_AdminLayout";
-    ViewData["Title"] = "Categories";
-    ViewData["PageTitle"] = "Categories";
-    ViewData["BreadcrumbCurrent"] = "All Categories";
+    ViewData["Title"] = Localizer["Categories"];
+    ViewData["PageTitle"] = Localizer["Categories"];
+    ViewData["BreadcrumbCurrent"] = Localizer["Categories"];
 }
 
 <div class="admin-card">
     <div class="admin-card-header">
-        <span class="card-title">🗂️ All Categories <span style="font-size:12px;font-weight:500;color:#9ca3af;margin-left:6px;">(@Model.Count() items)</span></span>
-        <a asp-action="Create" class="btn-admin-primary">＋ New Category</a>
+        <span class="card-title">🗂️ @Localizer["Categories"] <span style="font-size:12px;font-weight:500;color:#9ca3af;margin-left:6px;">(@Model.Count())</span></span>
+        <a asp-action="Create" class="btn-admin-primary">＋ @Localizer["AddNew"]</a>
     </div>
 
     @if (!Model.Any())
     {
         <div class="empty-state">
             <div class="empty-icon">🗂️</div>
-            <p>No categories yet. Create your first category.</p>
-            <a asp-action="Create" class="btn-admin-primary">＋ New Category</a>
+            <p>@Localizer["NoDataFound"]</p>
+            <a asp-action="Create" class="btn-admin-primary">＋ @Localizer["AddNew"]</a>
         </div>
     }
     else
@@ -28,8 +28,8 @@
                 <thead>
                     <tr>
                         <th>#</th>
-                        <th>Category Name</th>
-                        <th style="text-align:center;">Actions</th>
+                        <th>@Localizer["CategoryName"]</th>
+                        <th style="text-align:center;">@Localizer["Actions"]</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -45,9 +45,9 @@
                                 </div>
                             </td>
                             <td style="text-align:center;white-space:nowrap;">
-                                <a asp-action="Edit"    asp-route-id="@item.Id" class="btn-tbl btn-tbl-edit"  title="Edit">✏️</a>
-                                <a asp-action="Details" asp-route-id="@item.Id" class="btn-tbl btn-tbl-view"  title="Details">👁️</a>
-                                <a asp-action="Delete"  asp-route-id="@item.Id" class="btn-tbl btn-tbl-del"   title="Delete">🗑️</a>
+                                <a asp-action="Edit"    asp-route-id="@item.Id" class="btn-tbl btn-tbl-edit"  title="@Localizer["Edit"]">✏️</a>
+                                <a asp-action="Details" asp-route-id="@item.Id" class="btn-tbl btn-tbl-view"  title="@Localizer["Details"]">👁️</a>
+                                <a asp-action="Delete"  asp-route-id="@item.Id" class="btn-tbl btn-tbl-del"   title="@Localizer["Delete"]">🗑️</a>
                             </td>
                         </tr>
                     }

@@ -1,7 +1,7 @@
 @{
     Layout = "_AdminLayout";
-    ViewData["Title"] = "Dashboard";
-    ViewData["PageTitle"] = "Dashboard";
+    ViewData["Title"] = Localizer["Dashboard"];
+    ViewData["PageTitle"] = Localizer["Dashboard"];
 }
 
 <!-- Stat Cards -->
@@ -9,17 +9,17 @@
     <div class="stat-card orders">
         <div class="stat-icon">🛍️</div>
         <div class="stat-value">@ViewBag.TotalOrders</div>
-        <div class="stat-label">Total Orders</div>
+        <div class="stat-label">@Localizer["Orders"]</div>
     </div>
     <div class="stat-card revenue">
         <div class="stat-icon">💰</div>
         <div class="stat-value">@ViewBag.TotalRevenue <span style="font-size:16px;font-weight:500;">EGP</span></div>
-        <div class="stat-label">Total Revenue</div>
+        <div class="stat-label">@Localizer["TotalAmount"]</div>
     </div>
     <div class="stat-card users">
         <div class="stat-icon">👤</div>
         <div class="stat-value">@ViewBag.TotalUsers</div>
-        <div class="stat-label">Registered Users</div>
+        <div class="stat-label">@Localizer["Customer"]</div>
     </div>
 </div>
 
@@ -33,21 +33,21 @@
 
     <div class="admin-card">
         <div class="admin-card-header">
-            <span class="card-title">⚡ Quick Actions</span>
+            <span class="card-title">⚡ @Localizer["Actions"]</span>
         </div>
         <div class="admin-card-body" style="padding:16px;">
             <div style="display:flex;flex-direction:column;gap:10px;">
                 <a asp-controller="Products" asp-action="Create" class="btn-admin-primary" style="justify-content:center;">
-                    ＋ Add Product
+                    ＋ @Localizer["CreateProduct"]
                 </a>
                 <a asp-controller="Categories" asp-action="Create" class="btn-admin-primary" style="justify-content:center;background:#8b5cf6;color:#fff;">
-                    ＋ Add Category
+                    ＋ @Localizer["CreateCategory"]
                 </a>
                 <a asp-controller="AdminOrders" asp-action="Index" class="btn-admin-secondary" style="justify-content:center;">
-                    📋 View All Orders
+                    📋 @Localizer["Orders"]
                 </a>
                 <a asp-controller="Shop" asp-action="Index" class="btn-admin-secondary" style="justify-content:center;">
-                    🏪 Visit Storefront
+                    🏪 @Localizer["Shop"]
                 </a>
             </div>
         </div>

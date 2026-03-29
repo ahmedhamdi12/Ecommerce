@@ -1,3 +1,6 @@
-﻿@using Ecommerce
+@using Ecommerce
 @using Ecommerce.Models
+@using Ecommerce.Resources
+@using System.Globalization
 @addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@inject Microsoft.Extensions.Localization.IStringLocalizer<SharedResource> Localizer

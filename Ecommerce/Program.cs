@@ -1,7 +1,11 @@
+using System.Globalization;
 using Ecommerce.Data;
 using Ecommerce.Services;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Localization;
+using Microsoft.AspNetCore.Mvc.Razor;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -14,12 +18,41 @@ builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 builder.Services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.RequireConfirmedAccount = true)
     .AddRoles<IdentityRole>()
     .AddEntityFrameworkStores<ApplicationDbContext>();
-builder.Services.AddControllersWithViews();
+// ✅ Single registration — AddControllersWithViews chained with localization
+builder.Services.AddControllersWithViews()
+    .AddViewLocalization(LanguageViewLocationExpanderFormat.Suffix)
+    .AddDataAnnotationsLocalization();
+
 builder.Services.AddSession();
 builder.Services.AddScoped<EmailService>();
 
+builder.Services.AddLocalization(options => options.ResourcesPath = "");
+
+var supportedCultures = new[] { "en", "ar" };
+builder.Services.Configure<RequestLocalizationOptions>(options =>
+{
+    options.DefaultRequestCulture = new RequestCulture("en");
+    options.SupportedCultures = supportedCultures.Select(c => new CultureInfo(c)).ToList();
+    options.SupportedUICultures = supportedCultures.Select(c => new CultureInfo(c)).ToList();
+    options.RequestCultureProviders = new List<IRequestCultureProvider>
+    {
+        new CookieRequestCultureProvider(),
+        new QueryStringRequestCultureProvider(),
+        new AcceptLanguageHeaderRequestCultureProvider()
+    };
+});
 
 var app = builder.Build();
+
+using (var scope = app.Services.CreateScope())
+{
+    var loc = scope.ServiceProvider.GetRequiredService<Microsoft.Extensions.Localization.IStringLocalizer<Ecommerce.Resources.SharedResource>>();
+    var defaultCulture = System.Globalization.CultureInfo.CurrentUICulture;
+    System.Globalization.CultureInfo.CurrentUICulture = new System.Globalization.CultureInfo("ar");
+    Console.WriteLine("\n\n=== DIAGNOSTICS ===");
+    Console.WriteLine("Localized 'Dashboard' in AR: " + loc["Dashboard"]);
+    System.Globalization.CultureInfo.CurrentUICulture = defaultCulture;
+}
 
 using (var scope = app.Services.CreateScope())
 {
@@ -68,7 +101,8 @@ else
     // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
     app.UseHsts();
 }
-
+var locOptions = app.Services.GetRequiredService<IOptions<RequestLocalizationOptions>>();
+app.UseRequestLocalization(locOptions.Value);
 app.UseHttpsRedirection();
 app.UseRouting();
 

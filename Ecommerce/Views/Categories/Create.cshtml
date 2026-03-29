@@ -2,31 +2,31 @@
 
 @{
     Layout = "_AdminLayout";
-    ViewData["Title"] = "Create Category";
-    ViewData["PageTitle"] = "New Category";
-    ViewData["BreadcrumbParent"] = "Categories";
+    ViewData["Title"] = Localizer["CreateCategory"];
+    ViewData["PageTitle"] = Localizer["CreateCategory"];
+    ViewData["BreadcrumbParent"] = Localizer["Categories"];
     ViewData["BreadcrumbParentUrl"] = Url.Action("Index", "Categories");
-    ViewData["BreadcrumbCurrent"] = "Create";
+    ViewData["BreadcrumbCurrent"] = Localizer["Create"];
 }
 
 <div class="admin-card admin-form-card">
     <div class="admin-card-header">
-        <span class="card-title">🗂️ Add New Category</span>
-        <a asp-action="Index" class="btn-admin-secondary">← Back to Categories</a>
+        <span class="card-title">🗂️ @Localizer["CreateCategory"]</span>
+        <a asp-action="Index" class="btn-admin-secondary">← @Localizer["BackToList"]</a>
     </div>
     <div class="admin-card-body">
         <form asp-action="Create" class="admin-form">
             <div asp-validation-summary="ModelOnly" class="validation-summary"></div>
 
             <div class="form-field">
-                <label asp-for="Name">Category Name</label>
-                <input asp-for="Name" placeholder="e.g. Electronics, Clothing, Shoes..." />
+                <label asp-for="Name">@Localizer["CategoryName"]</label>
+                <input asp-for="Name" placeholder="..." />
                 <span asp-validation-for="Name" class="field-error"></span>
             </div>
 
             <div class="form-actions">
-                <button type="submit" class="btn-admin-primary">✓ Create Category</button>
-                <a asp-action="Index" class="btn-admin-secondary">Cancel</a>
+                <button type="submit" class="btn-admin-primary">✓ @Localizer["CreateCategory"]</button>
+                <a asp-action="Index" class="btn-admin-secondary">@Localizer["Cancel"]</a>
             </div>
         </form>
     </div>
