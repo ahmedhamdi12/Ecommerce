@@ -1,59 +1,75 @@
-﻿@model IEnumerable<Ecommerce.Models.Product>
+@model IEnumerable<Ecommerce.Models.Product>
 
 @{
-    ViewData["Title"] = "Index";
+    Layout = "_AdminLayout";
+    ViewData["Title"] = "Products";
+    ViewData["PageTitle"] = "Products";
+    ViewData["BreadcrumbCurrent"] = "All Products";
 }
 
-<h1>Index</h1>
+<div class="admin-card">
+    <div class="admin-card-header">
+        <span class="card-title">📦 All Products <span style="font-size:12px;font-weight:500;color:#9ca3af;margin-left:6px;">(@Model.Count() items)</span></span>
+        <a asp-action="Create" class="btn-admin-primary">＋ New Product</a>
+    </div>
 
-<p>
-    <a asp-action="Create">Create New</a>
-</p>
-<table class="table">
-    <thead>
-        <tr>
-            <th>
-                @Html.DisplayNameFor(model => model.Name)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Price)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Description)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.ImageUrl)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Category)
-            </th>
-            <th></th>
-        </tr>
-    </thead>
-    <tbody>
-@foreach (var item in Model) {
-        <tr>
-            <td>
-                @Html.DisplayFor(modelItem => item.Name)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Price)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Description)
-            </td>
-            <td>
-                <img src="~/images/@item.ImageUrl" style="width:100px"/>
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Category.Name)
-            </td>
-            <td>
-                <a asp-action="Edit" asp-route-id="@item.Id">Edit</a> |
-                <a asp-action="Details" asp-route-id="@item.Id">Details</a> |
-                <a asp-action="Delete" asp-route-id="@item.Id">Delete</a>
-            </td>
-        </tr>
-}
-    </tbody>
-</table>
+    @if (!Model.Any())
+    {
+        <div class="empty-state">
+            <div class="empty-icon">📦</div>
+            <p>No products yet. Add your first product to get started.</p>
+            <a asp-action="Create" class="btn-admin-primary">＋ New Product</a>
+        </div>
+    }
+    else
+    {
+        <div class="admin-table-wrap">
+            <table class="admin-table">
+                <thead>
+                    <tr>
+                        <th>Image</th>
+                        <th>Name</th>
+                        <th>Category</th>
+                        <th>Price</th>
+                        <th>Description</th>
+                        <th style="text-align:center;">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model)
+                    {
+                        <tr>
+                            <td>
+                                @if (!string.IsNullOrEmpty(item.ImageUrl))
+                                {
+                                    <img src="~/images/@item.ImageUrl" class="tbl-thumb" alt="@item.Name" />
+                                }
+                                else
+                                {
+                                    <div class="tbl-thumb-placeholder">📷</div>
+                                }
+                            </td>
+                            <td>
+                                <span style="font-weight:600;color:#1a1d27;">@item.Name</span>
+                            </td>
+                            <td>
+                                <span class="status-badge badge-default" style="font-size:11px;">@item.Category?.Name</span>
+                            </td>
+                            <td>
+                                <span style="font-weight:600;color:#10b981;">@item.Price.ToString("N2") EGP</span>
+                            </td>
+                            <td style="max-width:200px;">
+                                <span style="color:#6b7280;font-size:13px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;">@item.Description</span>
+                            </td>
+                            <td style="text-align:center;white-space:nowrap;">
+                                <a asp-action="Edit"    asp-route-id="@item.Id" class="btn-tbl btn-tbl-edit"  title="Edit">✏️</a>
+                                <a asp-action="Details" asp-route-id="@item.Id" class="btn-tbl btn-tbl-view"  title="Details">👁️</a>
+                                <a asp-action="Delete"  asp-route-id="@item.Id" class="btn-tbl btn-tbl-del"   title="Delete">🗑️</a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</div>

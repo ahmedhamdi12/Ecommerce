@@ -1,31 +1,76 @@
-﻿@model List<Ecommerce.Models.Order>
+@model List<Ecommerce.Models.Order>
 
-<h2>All Orders</h2>
+@{
+    Layout = "_AdminLayout";
+    ViewData["Title"] = "Orders";
+    ViewData["PageTitle"] = "Orders";
+    ViewData["BreadcrumbCurrent"] = "All Orders";
+}
 
-<table class="table">
-    <thead>
-        <tr>
-            <th>Order Id</th>
-            <th>User</th>
-            <th>Total</th>
-            <th>Status</th>
-            <th>Change</th>
-        </tr>
-    </thead>
+<div class="admin-card">
+    <div class="admin-card-header">
+        <span class="card-title">🛍️ All Orders <span style="font-size:12px;font-weight:500;color:#9ca3af;margin-left:6px;">(@Model.Count items)</span></span>
+    </div>
 
-    <tbody>
-        @foreach (var order in Model)
-        {
-            <tr>
-                <td>@order.Id</td>
-                <td>@order.UserId</td>
-                <td>@order.Total</td>
-                <td>@order.Status</td>
-                <td>
-                    <a asp-action="UpdateStatus" asp-route-id="@order.Id" asp-route-status="Processing" class="btn btn-warning">Processing</a>
-                    <a asp-action="UpdateStatus" asp-route-id="@order.Id" asp-route-status="Completed" class="btn btn-success">Completed</a>
-                </td>
-            </tr>
-        }
-    </tbody>
-</table>
+    @if (!Model.Any())
+    {
+        <div class="empty-state">
+            <div class="empty-icon">🛍️</div>
+            <p>No orders have been placed yet.</p>
+        </div>
+    }
+    else
+    {
+        <div class="admin-table-wrap">
+            <table class="admin-table">
+                <thead>
+                    <tr>
+                        <th>Order ID</th>
+                        <th>Customer</th>
+                        <th>Total</th>
+                        <th>Status</th>
+                        <th style="text-align:center;">Update Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var order in Model)
+                    {
+                        <tr>
+                            <td>
+                                <span style="font-weight:700;color:#1a1d27;">#@order.Id</span>
+                            </td>
+                            <td>
+                                <div style="display:flex;align-items:center;gap:9px;">
+                                    <div style="width:32px;height:32px;background:#f0d080;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#0f1117;flex-shrink:0;">
+                                        @(order.UserId?.Length > 0 ? "U" : "?")
+                                    </div>
+                                    <span style="font-size:13px;color:#6b7280;max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">@order.UserId</span>
+                                </div>
+                            </td>
+                            <td>
+                                <span style="font-weight:700;color:#10b981;">@order.Total.ToString("N2") EGP</span>
+                            </td>
+                            <td>
+                                @{
+                                    string badgeClass = order.Status switch {
+                                        "Pending"    => "badge-pending",
+                                        "Processing" => "badge-processing",
+                                        "Completed"  => "badge-completed",
+                                        _            => "badge-default"
+                                    };
+                                }
+                                <span class="status-badge @badgeClass">@order.Status</span>
+                            </td>
+                            <td style="text-align:center;white-space:nowrap;">
+                                <a asp-action="UpdateStatus" asp-route-id="@order.Id" asp-route-status="Processing"
+                                   class="btn-status btn-status-processing">⚙️ Processing</a>
+                                <a asp-action="UpdateStatus" asp-route-id="@order.Id" asp-route-status="Completed"
+                                   class="btn-status btn-status-completed">✅ Completed</a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</div>

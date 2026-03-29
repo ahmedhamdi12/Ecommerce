@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] — Admin · MyStore</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="~/css/admin.css" asp-append-version="true" />
+</head>
+<body style="margin:0;padding:0;background:#f7f8fc;font-family:'Inter',sans-serif;">
+
+<div class="admin-wrapper">
+
+    <!-- ══ SIDEBAR ══ -->
+    <aside class="admin-sidebar">
+        <!-- Logo -->
+        <a class="sidebar-logo" asp-controller="Home" asp-action="Index">
+            <div class="logo-icon">🛒</div>
+            <div>
+                <div class="logo-text">MyStore</div>
+                <span class="logo-badge">Admin Panel</span>
+            </div>
+        </a>
+
+        <!-- Navigation -->
+        <nav class="sidebar-nav">
+            <div class="nav-section-label">Overview</div>
+            <a asp-controller="AdminDashboard" asp-action="Index"
+               class="@(ViewContext.RouteData.Values["controller"]?.ToString() == "AdminDashboard" ? "active" : "")">
+                <span class="nav-icon">📊</span> Dashboard
+            </a>
+
+            <div class="nav-section-label">Catalogue</div>
+            <a asp-controller="Products" asp-action="Index"
+               class="@(ViewContext.RouteData.Values["controller"]?.ToString() == "Products" ? "active" : "")">
+                <span class="nav-icon">📦</span> Products
+            </a>
+            <a asp-controller="Categories" asp-action="Index"
+               class="@(ViewContext.RouteData.Values["controller"]?.ToString() == "Categories" ? "active" : "")">
+                <span class="nav-icon">🗂️</span> Categories
+            </a>
+
+            <div class="nav-section-label">Sales</div>
+            <a asp-controller="AdminOrders" asp-action="Index"
+               class="@(ViewContext.RouteData.Values["controller"]?.ToString() == "AdminOrders" ? "active" : "")">
+                <span class="nav-icon">🛍️</span> Orders
+            </a>
+
+            <div class="nav-section-label">Store</div>
+            <a asp-controller="Shop" asp-action="Index">
+                <span class="nav-icon">🏪</span> Visit Store
+            </a>
+        </nav>
+
+        <!-- Footer user info -->
+        <div class="sidebar-footer">
+            <div class="user-info">
+                <div class="user-avatar">A</div>
+                <div>
+                    <div class="user-name">@User.Identity?.Name</div>
+                    <div class="user-role">Administrator</div>
+                </div>
+                <form asp-area="Identity" asp-page="/Account/Logout" asp-route-returnUrl="/" method="post" style="margin-left:auto;">
+                    <button type="submit" class="btn-logout" title="Logout">⏻</button>
+                </form>
+            </div>
+        </div>
+    </aside>
+
+    <!-- ══ MAIN ══ -->
+    <div class="admin-main">
+        <!-- Top bar -->
+        <div class="admin-topbar">
+            <h1 class="page-title">@(ViewData["PageTitle"] ?? ViewData["Title"])</h1>
+            <div class="breadcrumb-light">
+                <a asp-controller="AdminDashboard" asp-action="Index">Dashboard</a>
+                @if (ViewData["BreadcrumbParent"] != null)
+                {
+                    <span> / </span><a href="@ViewData["BreadcrumbParentUrl"]">@ViewData["BreadcrumbParent"]</a>
+                }
+                @if (ViewData["BreadcrumbCurrent"] != null)
+                {
+                    <span> / @ViewData["BreadcrumbCurrent"]</span>
+                }
+            </div>
+        </div>
+
+        <!-- Content -->
+        <div class="admin-content">
+            @RenderBody()
+        </div>
+    </div>
+</div>
+
+<script src="~/lib/jquery/dist/jquery.min.js"></script>
+@await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

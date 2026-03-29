@@ -1,35 +1,58 @@
-﻿@model IEnumerable<Ecommerce.Models.Category>
+@model IEnumerable<Ecommerce.Models.Category>
 
 @{
-    ViewData["Title"] = "Index";
+    Layout = "_AdminLayout";
+    ViewData["Title"] = "Categories";
+    ViewData["PageTitle"] = "Categories";
+    ViewData["BreadcrumbCurrent"] = "All Categories";
 }
 
-<h1>Index</h1>
+<div class="admin-card">
+    <div class="admin-card-header">
+        <span class="card-title">🗂️ All Categories <span style="font-size:12px;font-weight:500;color:#9ca3af;margin-left:6px;">(@Model.Count() items)</span></span>
+        <a asp-action="Create" class="btn-admin-primary">＋ New Category</a>
+    </div>
 
-<p>
-    <a asp-action="Create">Create New</a>
-</p>
-<table class="table">
-    <thead>
-        <tr>
-            <th>
-                @Html.DisplayNameFor(model => model.Name)
-            </th>
-            <th></th>
-        </tr>
-    </thead>
-    <tbody>
-@foreach (var item in Model) {
-        <tr>
-            <td>
-                @Html.DisplayFor(modelItem => item.Name)
-            </td>
-            <td>
-                <a asp-action="Edit" asp-route-id="@item.Id">Edit</a> |
-                <a asp-action="Details" asp-route-id="@item.Id">Details</a> |
-                <a asp-action="Delete" asp-route-id="@item.Id">Delete</a>
-            </td>
-        </tr>
-}
-    </tbody>
-</table>
+    @if (!Model.Any())
+    {
+        <div class="empty-state">
+            <div class="empty-icon">🗂️</div>
+            <p>No categories yet. Create your first category.</p>
+            <a asp-action="Create" class="btn-admin-primary">＋ New Category</a>
+        </div>
+    }
+    else
+    {
+        <div class="admin-table-wrap">
+            <table class="admin-table">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Category Name</th>
+                        <th style="text-align:center;">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @{int idx = 1;}
+                    @foreach (var item in Model)
+                    {
+                        <tr>
+                            <td style="color:#9ca3af;font-size:13px;font-weight:500;width:48px;">@(idx++)</td>
+                            <td>
+                                <div style="display:flex;align-items:center;gap:10px;">
+                                    <div style="width:36px;height:36px;background:rgba(201,168,76,0.12);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:18px;">🏷️</div>
+                                    <span style="font-weight:600;color:#1a1d27;">@item.Name</span>
+                                </div>
+                            </td>
+                            <td style="text-align:center;white-space:nowrap;">
+                                <a asp-action="Edit"    asp-route-id="@item.Id" class="btn-tbl btn-tbl-edit"  title="Edit">✏️</a>
+                                <a asp-action="Details" asp-route-id="@item.Id" class="btn-tbl btn-tbl-view"  title="Details">👁️</a>
+                                <a asp-action="Delete"  asp-route-id="@item.Id" class="btn-tbl btn-tbl-del"   title="Delete">🗑️</a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</div>
